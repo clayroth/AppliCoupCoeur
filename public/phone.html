@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Coup de cœur 2026</title>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(circle at 50% 15%, rgba(255,170,200,.22), transparent 28%),
+        linear-gradient(180deg,#2a0c18 0%, #180811 55%, #0f0409 100%);
+      color:white;
+      font-family:Arial,Helvetica,sans-serif;
+      overflow:hidden;
+      touch-action:manipulation;
+    }
+    .wrap{
+      width:min(92vw,520px);
+      text-align:center;
+      padding:20px 0;
+    }
+    .logo{
+      max-width:180px;
+      max-height:100px;
+      object-fit:contain;
+      margin-bottom:18px;
+      display:none;
+    }
+    h1{
+      font-size:clamp(28px,7.4vw,48px);
+      margin:0 0 12px;
+      color:#fff5fa;
+      text-shadow:0 0 18px rgba(255,80,140,.35);
+    }
+    .subtitle{
+      opacity:.88;
+      margin:0 auto 24px;
+      max-width:420px;
+      color:#ffe6ef;
+      line-height:1.4;
+    }
+    .meter{
+      height:18px;
+      background:rgba(255,255,255,.10);
+      border-radius:999px;
+      overflow:hidden;
+      margin:0 auto 24px;
+      box-shadow:inset 0 0 10px rgba(0,0,0,.4);
+    }
+    .fill{
+      width:0%;
+      height:100%;
+      background:linear-gradient(90deg,#ff90b5,#ff4f8b,#ffd66b);
+      transition:width .12s linear;
+      box-shadow:0 0 18px rgba(255,145,181,.55);
+    }
+    .percent{
+      font-size:36px;
+      font-weight:800;
+      margin-bottom:18px;
+      color:#fff8fb;
+    }
+    .heart-btn-wrap{
+      position:relative;
+      width:min(78vw,340px);
+      margin:0 auto;
+    }
+    button{
+      width:100%;
+      aspect-ratio:1;
+      border-radius:50%;
+      border:0;
+      color:white;
+      font-weight:900;
+      font-size:clamp(24px,7vw,44px);
+      line-height:1.15;
+      padding:20px;
+      background:
+        radial-gradient(circle at 35% 30%, #ffbfd5 0%, #ff7da9 24%, #ff4f8b 55%, #962753 100%);
+      box-shadow:
+        0 0 0 12px rgba(255,255,255,.08),
+        0 0 42px rgba(255,110,166,.38),
+        inset 0 -18px 30px rgba(0,0,0,.28);
+      transition:transform .05s ease, filter .05s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    button:active{
+      transform:scale(.95);
+      filter:brightness(1.1);
+    }
+    .btn-heart{
+      display:block;
+      font-size:clamp(42px,12vw,70px);
+      margin-bottom:10px;
+    }
+    .hint{
+      margin-top:22px;
+      opacity:.76;
+      font-size:14px;
+      color:#ffe6ef;
+    }
+    .done{
+      color:#ffd66b;
+      font-weight:800;
+      margin-top:16px;
+      min-height:24px;
+    }
+    .burst{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      pointer-events:none;
+      width:100%;
+      height:100%;
+      overflow:visible;
+    }
+    .mini-heart{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      font-size:24px;
+      animation:miniFloat .7s ease-out forwards;
+      opacity:0;
+    }
+    @keyframes miniFloat{
+      0%{ opacity:0; transform:translate(-50%,-50%) scale(.6); }
+      20%{ opacity:1; }
+      100%{ opacity:0; transform:translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <img id="logo" class="logo" alt="Logo">
+    <h1 id="phoneTitle"></h1>
+    <div class="subtitle" id="phoneSubtitle"></div>
+    <div class="meter"><div class="fill" id="fill"></div></div>
+    <div class="percent" id="percent">0%</div>
+
+    <div class="heart-btn-wrap">
+      <button id="boost"><span class="btn-heart">❤️</span><span id="btnText"></span></button>
+      <div class="burst" id="burst"></div>
+    </div>
+
+    <div class="done" id="done"></div>
+    <div class="hint" id="hint"></div>
+  </div>
+
+  <script src="/config.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const cfg = window.APP_CONFIG;
+    document.getElementById("phoneTitle").textContent = cfg.phoneTitle;
+    document.getElementById("phoneSubtitle").textContent = cfg.phoneSubtitle;
+    document.getElementById("btnText").textContent = cfg.phoneButton;
+    document.getElementById("hint").textContent = cfg.phoneHint;
+
+    if (cfg.logo) {
+      const logo = document.getElementById("logo");
+      logo.src = "/images/" + cfg.logo;
+      logo.style.display = "inline-block";
+    }
+
+    const socket = io();
+    const fill = document.getElementById("fill");
+    const percent = document.getElementById("percent");
+    const button = document.getElementById("boost");
+    const done = document.getElementById("done");
+    const burst = document.getElementById("burst");
+
+    function localBurst() {
+      const hearts = ["❤","❤️","💖","💕"];
+      for (let i = 0; i < 6; i++) {
+        const el = document.createElement("div");
+        el.className = "mini-heart";
+        el.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        const x = (-90 + Math.random() * 180).toFixed(0) + "px";
+        const y = (-130 + Math.random() * 90).toFixed(0) + "px";
+        el.style.setProperty("--x", x);
+        el.style.setProperty("--y", y);
+        burst.appendChild(el);
+        setTimeout(() => el.remove(), 800);
+      }
+    }
+
+    button.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      socket.emit("boost");
+      localBurst();
+      if (navigator.vibrate) navigator.vibrate(18);
+    });
+
+    socket.on("state", state => {
+      fill.style.width = state.progress + "%";
+      percent.textContent = Math.round(state.progress) + "%";
+      if (state.progress < 100) done.textContent = "";
+    });
+
+    socket.on("completed", () => {
+      done.textContent = cfg.phoneCompleted;
+    });
+  </script>
+</body>
+</html>

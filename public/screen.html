@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Coup de cœur 2026</title>
+  <style>
+    *{box-sizing:border-box}
+    :root{
+      --pink:#ff4f8b;
+      --pink2:#ff85b0;
+      --rose:#ffb7d1;
+      --gold:#ffd66b;
+      --cream:#fff9f6;
+      --deep:#2b0e1a;
+      --deep2:#4a1730;
+      --shadow:0 0 30px rgba(255,90,145,.35);
+    }
+    body{
+      margin:0;
+      width:100vw;
+      min-height:100vh;
+      overflow:hidden;
+      color:white;
+      font-family:Arial,Helvetica,sans-serif;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255, 136, 180, .22), transparent 20%),
+        radial-gradient(circle at 80% 15%, rgba(255, 214, 107, .20), transparent 20%),
+        radial-gradient(circle at 50% 90%, rgba(255, 79, 139, .18), transparent 28%),
+        linear-gradient(180deg,#1a0710 0%, #2a0d18 45%, #14060d 100%);
+    }
+    .bg-hearts{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.15;
+      background-image:
+        radial-gradient(circle at 12% 18%, #ffffff 0 1px, transparent 2px),
+        radial-gradient(circle at 82% 70%, #ffffff 0 1px, transparent 2px),
+        radial-gradient(circle at 68% 12%, #ffffff 0 1px, transparent 2px),
+        radial-gradient(circle at 33% 82%, #ffffff 0 1px, transparent 2px);
+    }
+    .floating-hearts{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:5;
+    }
+    .screen{
+      position:relative;
+      z-index:2;
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(300px,26vw);
+      align-items:center;
+      gap:4vw;
+      padding:4vw;
+    }
+    .main{
+      text-align:center;
+      position:relative;
+    }
+    .logo{
+      max-width:280px;
+      max-height:150px;
+      object-fit:contain;
+      margin-bottom:18px;
+      display:none;
+      filter:drop-shadow(0 0 18px rgba(255,255,255,.18));
+    }
+    .eyebrow{
+      font-size:clamp(18px,1.4vw,28px);
+      letter-spacing:.34em;
+      text-transform:uppercase;
+      color:#ffd8e8;
+      opacity:.92;
+      margin-bottom:18px;
+    }
+    h1{
+      margin:0;
+      line-height:.9;
+      text-transform:uppercase;
+      text-shadow:0 0 30px rgba(255,132,180,.55);
+    }
+    h1 .line1{
+      display:block;
+      font-size:clamp(58px,7vw,138px);
+      color:#fff6fb;
+    }
+    h1 .line2{
+      display:block;
+      font-size:clamp(52px,6.2vw,124px);
+      color:#ffd66b;
+      margin-top:.08em;
+    }
+    .subtitle{
+      margin:24px auto 0;
+      max-width:980px;
+      font-size:clamp(20px,1.8vw,34px);
+      color:#ffe7ef;
+      opacity:.88;
+    }
+    .love-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      margin-top:26px;
+      padding:12px 24px;
+      border-radius:999px;
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:var(--shadow);
+      font-weight:800;
+      color:#fff5f9;
+      backdrop-filter:blur(8px);
+      font-size:clamp(16px,1.2vw,22px);
+    }
+    .bar-wrap{
+      width:100%;
+      margin-top:6vh;
+    }
+    .bar-shell{
+      height:clamp(62px,7.5vh,110px);
+      border:2px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      border-radius:999px;
+      padding:10px;
+      box-shadow:inset 0 0 24px rgba(0,0,0,.45), 0 0 40px rgba(255,79,139,.22);
+      backdrop-filter:blur(6px);
+    }
+    .bar{
+      width:0%;
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, #ff7aa9 0%, #ff4f8b 35%, #ff8096 65%, #ffd66b 100%);
+      box-shadow:0 0 26px rgba(255,104,160,.8), 0 0 56px rgba(255,214,107,.28);
+      position:relative;
+      overflow:hidden;
+      transition:width .12s linear;
+    }
+    .bar::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(115deg, transparent 0 35%, rgba(255,255,255,.55) 48%, transparent 60% 100%);
+      transform:translateX(-120%);
+      animation:sheen 1.6s infinite linear;
+    }
+    .bar::after{
+      content:"❤";
+      position:absolute;
+      right:16px;
+      top:50%;
+      transform:translateY(-50%);
+      font-size:clamp(28px,2vw,40px);
+      color:#fff3f7;
+      text-shadow:0 0 14px rgba(255,255,255,.7);
+    }
+    @keyframes sheen { to { transform:translateX(120%); } }
+    .value{
+      text-align:center;
+      font-size:clamp(60px,6vw,122px);
+      font-weight:900;
+      margin-top:20px;
+      color:#fff8fc;
+      text-shadow:0 0 26px rgba(255,132,180,.35);
+    }
+    .stats{
+      display:flex;
+      justify-content:center;
+      gap:4vw;
+      margin-top:20px;
+      font-size:clamp(17px,1.5vw,28px);
+      color:#ffe8f0;
+      opacity:.92;
+    }
+    .stat-pill{
+      padding:12px 18px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+    }
+    .qr-panel{
+      text-align:center;
+      border:2px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.09);
+      backdrop-filter:blur(12px);
+      border-radius:30px;
+      padding:30px;
+      box-shadow:0 0 60px rgba(0,0,0,.35), 0 0 30px rgba(255,79,139,.18);
+      position:relative;
+      overflow:hidden;
+    }
+    .qr-panel::before{
+      content:"❤";
+      position:absolute;
+      top:-18px;
+      right:22px;
+      font-size:48px;
+      opacity:.15;
+    }
+    .qr-title{
+      font-weight:900;
+      font-size:clamp(22px,2vw,38px);
+      margin-bottom:16px;
+      color:#fff6fb;
+    }
+    .qr-box{
+      background:white;
+      padding:16px;
+      border-radius:22px;
+      display:inline-block;
+      box-shadow:0 0 35px rgba(255,255,255,.22);
+    }
+    .qr-box img{
+      display:block;
+      width:min(20vw,320px);
+      max-width:100%;
+      aspect-ratio:1;
+    }
+    .scan{
+      margin-top:18px;
+      font-size:clamp(17px,1.4vw,26px);
+      font-weight:700;
+      color:#fff1f6;
+    }
+    .phone-url{
+      margin-top:10px;
+      font-size:clamp(11px,.9vw,17px);
+      opacity:.72;
+      color:#ffe4ee;
+      overflow-wrap:anywhere;
+    }
+    .mode{
+      margin-top:8px;
+      font-size:12px;
+      opacity:.48;
+      text-transform:uppercase;
+      letter-spacing:.15em;
+      color:#fff0f6;
+    }
+    .complete{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      background:radial-gradient(circle, rgba(255,79,139,.38), rgba(32,8,18,.95) 70%);
+      z-index:20;
+      padding:4vw;
+    }
+    .complete.show{
+      display:grid;
+      animation:flash .7s ease both;
+    }
+    .complete-card{
+      padding:36px 48px;
+      border-radius:36px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.2);
+      box-shadow:0 0 80px rgba(255,79,139,.35);
+      backdrop-filter:blur(14px);
+    }
+    .complete-inner{
+      font-size:clamp(60px,8vw,160px);
+      font-weight:1000;
+      text-align:center;
+      color:#fff7fb;
+      text-shadow:0 0 30px rgba(255,255,255,.25), 0 0 80px rgba(255,79,139,.4);
+      line-height:.92;
+    }
+    @keyframes flash{
+      0%{opacity:0;transform:scale(.8)}
+      45%{opacity:1;transform:scale(1.05)}
+      100%{opacity:1;transform:scale(1)}
+    }
+    .admin{
+      position:fixed;
+      right:20px;
+      bottom:20px;
+      opacity:.18;
+      border:1px solid rgba(255,255,255,.28);
+      background:rgba(0,0,0,.28);
+      color:white;
+      padding:10px 16px;
+      border-radius:999px;
+      cursor:pointer;
+      z-index:25;
+    }
+    .admin:hover{opacity:.95}
+    .heart-burst{
+      position:absolute;
+      bottom:-30px;
+      font-size:clamp(22px,2.3vw,42px);
+      filter:drop-shadow(0 0 8px rgba(255,255,255,.18));
+      animation:floatUp var(--dur, 2.6s) ease-out forwards;
+      opacity:0;
+      will-change:transform, opacity;
+    }
+    @keyframes floatUp{
+      0%{
+        transform:translate3d(0,0,0) scale(.65) rotate(0deg);
+        opacity:0;
+      }
+      12%{
+        opacity:1;
+      }
+      80%{
+        opacity:1;
+      }
+      100%{
+        transform:translate3d(var(--x,0px), var(--y,-72vh), 0) scale(var(--scale,1.2)) rotate(var(--rot,0deg));
+        opacity:0;
+      }
+    }
+    @media(max-width:900px){
+      body{overflow:auto}
+      .screen{grid-template-columns:1fr}
+      .qr-box img{width:min(60vw,280px)}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-hearts"></div>
+  <div class="floating-hearts" id="floatingHearts"></div>
+
+  <div class="screen">
+    <div class="main">
+      <img id="logo" class="logo" alt="Logo">
+      <div class="eyebrow" id="eyebrow"></div>
+      <h1>
+        <span class="line1" id="title1"></span>
+        <span class="line2" id="title2"></span>
+      </h1>
+      <div class="subtitle" id="subtitle"></div>
+      <div class="love-badge">❤️ Vote du public en direct • Saison 2026</div>
+
+      <div class="bar-wrap">
+        <div class="bar-shell"><div class="bar" id="bar"></div></div>
+        <div class="value" id="value">0%</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-pill">❤️ <span id="boosts">0</span> cœurs envoyés</div>
+        <div class="stat-pill">📱 <span id="users">0</span> participants connectés</div>
+      </div>
+    </div>
+
+    <aside class="qr-panel">
+      <div class="qr-title" id="qrTitle"></div>
+      <div class="qr-box"><img id="qr" alt="QR code pour participer"></div>
+      <div class="scan" id="qrInstruction"></div>
+      <div class="phone-url" id="phoneUrl">Chargement...</div>
+      <div class="mode" id="mode"></div>
+    </aside>
+  </div>
+
+  <div class="complete" id="complete">
+    <div class="complete-card">
+      <div class="complete-inner">
+        <span id="completion1"></span><br><span id="completion2"></span>
+      </div>
+    </div>
+  </div>
+
+  <button class="admin" id="reset">RESET</button>
+
+  <script src="/config.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const cfg = window.APP_CONFIG;
+
+    document.getElementById("eyebrow").textContent = cfg.eyebrow;
+    document.getElementById("title1").textContent = cfg.titleLine1;
+    document.getElementById("title2").textContent = cfg.titleLine2;
+    document.getElementById("subtitle").textContent = cfg.subtitle;
+    document.getElementById("qrTitle").textContent = cfg.qrTitle;
+    document.getElementById("qrInstruction").textContent = cfg.qrInstruction;
+    document.getElementById("completion1").textContent = cfg.completionLine1;
+    document.getElementById("completion2").textContent = cfg.completionLine2;
+
+    if (cfg.logo) {
+      const logo = document.getElementById("logo");
+      logo.src = "/images/" + cfg.logo;
+      logo.style.display = "inline-block";
+    }
+
+    const socket = io();
+    const bar = document.getElementById("bar");
+    const value = document.getElementById("value");
+    const boosts = document.getElementById("boosts");
+    const users = document.getElementById("users");
+    const complete = document.getElementById("complete");
+    const floatingHearts = document.getElementById("floatingHearts");
+
+    fetch("/config/network", { cache: "no-store" })
+      .then(r => r.json())
+      .then(network => {
+        document.getElementById("phoneUrl").textContent = network.phoneUrl;
+        document.getElementById("mode").textContent =
+          network.mode === "online" ? "MODE INTERNET" : "MODE LOCAL";
+        document.getElementById("qr").src = "/qr.png?t=" + Date.now();
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById("phoneUrl").textContent = "Erreur serveur";
+      });
+
+    function spawnHearts(count = 1) {
+      const symbols = ["❤","❤️","💖","💗","💕","💘"];
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement("div");
+        el.className = "heart-burst";
+        el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        const left = 10 + Math.random() * 80;
+        const x = (-140 + Math.random() * 280).toFixed(0) + "px";
+        const y = (-40 - Math.random() * 52).toFixed(0) + "vh";
+        const dur = (2.1 + Math.random() * 1.4).toFixed(2) + "s";
+        const scale = (0.9 + Math.random() * 1.1).toFixed(2);
+        const rot = (-30 + Math.random() * 60).toFixed(0) + "deg";
+        el.style.left = left + "vw";
+        el.style.setProperty("--x", x);
+        el.style.setProperty("--y", y);
+        el.style.setProperty("--dur", dur);
+        el.style.setProperty("--scale", scale);
+        el.style.setProperty("--rot", rot);
+        floatingHearts.appendChild(el);
+        setTimeout(() => el.remove(), 4200);
+      }
+    }
+
+    socket.on("state", state => {
+      bar.style.width = state.progress + "%";
+      value.textContent = Math.round(state.progress) + "%";
+      boosts.textContent = state.totalBoosts;
+      users.textContent = state.connectedUsers;
+      if (state.progress < 100) complete.classList.remove("show");
+    });
+
+    socket.on("boostEffect", () => {
+      spawnHearts(3);
+    });
+
+    socket.on("resetEffects", () => {
+      floatingHearts.innerHTML = "";
+    });
+
+    socket.on("completed", () => {
+      complete.classList.add("show");
+      spawnHearts(26);
+    });
+
+    document.getElementById("reset").addEventListener("click", () => socket.emit("reset"));
+  </script>
+</body>
+</html>
