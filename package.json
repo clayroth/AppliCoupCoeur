@@ -1,0 +1,18 @@
+{
+  "name": "live-progress-crowd",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Jauge participative temps r\u00e9el avec QR code automatique, local + Render",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1"
+  }
+}
