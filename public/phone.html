@@ -15,24 +15,31 @@
           <div class="brand-mark">★</div>
           <div class="brand-text"><strong>Award Bedeez</strong><span>Homair</span></div>
         </div>
-        <h1 class="hero-title">Award <span class="accent">Bedeez</span></h1>
-        <p class="subtitle">Fais monter la jauge ! Chaque clic compte et s’affiche instantanément sur l’écran de l’événement.</p>
+
+        <h1 id="liveTitle" class="hero-title">Award Bedeez</h1>
+        <p id="liveSubtitle" class="subtitle">Fais monter la jauge ! Chaque clic compte et s’affiche instantanément sur l’écran de l’événement.</p>
+        <div id="specialMessage" class="special-message"></div>
         <div style="margin-top:22px" class="pill">🏆 Vote en direct</div>
       </section>
 
       <section class="card phone-panel">
-        <div class="mascot-wrap">
+        <div id="mascotWrap" class="mascot-wrap">
           <img id="mascot" class="mascot" src="/mascotte-bedeez.png" alt="Mascotte Bedeez"/>
         </div>
-        <div style="margin-top:6px">
+        <div style="margin-top:16px">
           <div class="small">Votes en direct</div>
           <div id="votes" class="big-number">0</div>
         </div>
         <button id="voteBtn" class="vote-btn">⭐ Voter pour l’Award</button>
-        <div class="helper">Tu peux cliquer plusieurs fois pour faire grimper la jauge.</div>
       </section>
     </div>
   </main>
+
+  <div id="winnerOverlay" class="winner-overlay">
+    <div class="winner-trophy">🏆</div>
+    <div id="winnerTitle" class="winner-title">WINNER !</div>
+    <div class="winner-sub">Award Bedeez</div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -40,8 +47,33 @@
     const votesEl = document.getElementById("votes");
     const btn = document.getElementById("voteBtn");
     const mascot = document.getElementById("mascot");
+    const mascotWrap = document.getElementById("mascotWrap");
+    const titleEl = document.getElementById("liveTitle");
+    const subtitleEl = document.getElementById("liveSubtitle");
+    const specialEl = document.getElementById("specialMessage");
+    const winnerOverlay = document.getElementById("winnerOverlay");
+    const winnerTitle = document.getElementById("winnerTitle");
 
-    socket.on("state", ({votes}) => votesEl.textContent = votes);
+    socket.on("state", ({votes, liveText, ui}) => {
+      votesEl.textContent = votes;
+
+      if (liveText) {
+        titleEl.textContent = liveText.title;
+        subtitleEl.textContent = liveText.phoneSubtitle;
+        btn.textContent = liveText.voteButton;
+        winnerTitle.textContent = liveText.title || "WINNER !";
+        specialEl.textContent = liveText.specialMessage || "";
+        specialEl.classList.toggle("show", Boolean(liveText.specialMessage));
+      }
+
+      if (ui) {
+        titleEl.style.color = ui.titleColor;
+        titleEl.style.fontSize = ui.titleSize + "px";
+        subtitleEl.style.color = ui.subtitleColor;
+        subtitleEl.style.fontSize = ui.subtitleSize + "px";
+        mascotWrap.classList.toggle("hidden", !ui.mascotVisible);
+      }
+    });
 
     btn.addEventListener("click", () => {
       socket.emit("vote");
@@ -50,6 +82,12 @@
       mascot.classList.add("bounce");
       burst(btn.getBoundingClientRect().left + btn.offsetWidth/2, btn.getBoundingClientRect().top + btn.offsetHeight/2);
       if (navigator.vibrate) navigator.vibrate(30);
+    });
+
+    socket.on("winner", () => {
+      winnerOverlay.classList.add("show");
+      megaConfetti();
+      setTimeout(() => winnerOverlay.classList.remove("show"), 7000);
     });
 
     function burst(x,y){
@@ -63,6 +101,21 @@
         s.style.setProperty("--dx", (Math.random()*180-90)+"px");
         document.body.appendChild(s);
         setTimeout(()=>s.remove(),1400);
+      }
+    }
+
+    function megaConfetti(){
+      const colors = ["#1683F3","#FFA400","#FFBE42","#79C3FF","#FFFFFF"];
+      for(let i=0;i<100;i++){
+        const d = document.createElement("div");
+        d.className = "confetti-dot";
+        d.style.left = (Math.random()*100) + "vw";
+        d.style.top = "-20px";
+        d.style.background = colors[Math.floor(Math.random()*colors.length)];
+        d.style.setProperty("--x", (Math.random()*500-250)+"px");
+        d.style.setProperty("--y", (window.innerHeight + Math.random()*350)+"px");
+        document.body.appendChild(d);
+        setTimeout(()=>d.remove(),1700);
       }
     }
   </script>

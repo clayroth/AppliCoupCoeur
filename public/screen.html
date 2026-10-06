@@ -15,10 +15,12 @@
           <div class="brand-mark">★</div>
           <div class="brand-text"><strong>Award Bedeez</strong><span>Live</span></div>
         </div>
-        <h1 class="hero-title">Award <span class="accent">Bedeez</span></h1>
-        <p class="subtitle">Scanne le QR code, vote depuis ton téléphone et regarde la jauge grimper en direct !</p>
 
-        <div style="margin-top:34px">
+        <h1 id="liveTitle" class="hero-title">Award Bedeez</h1>
+        <p id="liveSubtitle" class="subtitle">Scanne le QR code, vote depuis ton téléphone et regarde la jauge grimper en direct !</p>
+        <div id="specialMessage" class="special-message"></div>
+
+        <div id="progressBlock" style="margin-top:34px">
           <div class="progress-label">
             <div>
               <div class="small">Votes</div>
@@ -34,19 +36,26 @@
       </section>
 
       <section class="card screen-right">
-        <div class="mascot-wrap">
+        <div id="mascotWrap" class="mascot-wrap">
           <img id="mascot" class="mascot" src="/mascotte-bedeez.png" alt="Mascotte Bedeez"/>
         </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:10px">
+
+        <div id="qrBlock" style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:16px">
           <img class="qr" src="/qr" alt="QR code pour voter"/>
           <div>
             <div style="font-weight:1000;font-size:1.4rem;color:var(--blue)">À toi de jouer !</div>
-            <div class="small" style="max-width:200px;margin-top:6px">Scanne et appuie sur le bouton pour soutenir l’Award Bedeez.</div>
+            <div class="small" style="max-width:200px;margin-top:6px">Scanne et vote depuis ton téléphone.</div>
           </div>
         </div>
       </section>
     </div>
   </main>
+
+  <div id="winnerOverlay" class="winner-overlay">
+    <div class="winner-trophy">🏆</div>
+    <div id="winnerTitle" class="winner-title">Award Bedeez</div>
+    <div class="winner-sub">WINNER !</div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -55,33 +64,64 @@
     const goalEl = document.getElementById("goal");
     const bar = document.getElementById("bar");
     const mascot = document.getElementById("mascot");
+    const mascotWrap = document.getElementById("mascotWrap");
+    const titleEl = document.getElementById("liveTitle");
+    const subtitleEl = document.getElementById("liveSubtitle");
+    const specialEl = document.getElementById("specialMessage");
+    const qrBlock = document.getElementById("qrBlock");
+    const progressBlock = document.getElementById("progressBlock");
+    const winnerOverlay = document.getElementById("winnerOverlay");
+    const winnerTitle = document.getElementById("winnerTitle");
 
-    socket.on("state", ({votes, goal}) => {
+    socket.on("state", ({votes, goal, liveText, ui}) => {
       votesEl.textContent = votes;
       goalEl.textContent = goal;
-      const pct = Math.max(0, Math.min(100, (votes/goal)*100));
-      bar.style.width = pct + "%";
+      bar.style.width = Math.max(0, Math.min(100, (votes/goal)*100)) + "%";
+
+      if (liveText) {
+        titleEl.textContent = liveText.title;
+        subtitleEl.textContent = liveText.screenSubtitle;
+        winnerTitle.textContent = liveText.title || "Award Bedeez";
+        specialEl.textContent = liveText.specialMessage || "";
+        specialEl.classList.toggle("show", Boolean(liveText.specialMessage));
+      }
+
+      if (ui) {
+        titleEl.style.color = ui.titleColor;
+        titleEl.style.fontSize = ui.titleSize + "px";
+        subtitleEl.style.color = ui.subtitleColor;
+        subtitleEl.style.fontSize = ui.subtitleSize + "px";
+        qrBlock.classList.toggle("hidden", !ui.qrVisible);
+        mascotWrap.classList.toggle("hidden", !ui.mascotVisible);
+        progressBlock.classList.toggle("hidden", !ui.progressVisible);
+      }
     });
 
     socket.on("celebrate", () => {
       mascot.classList.remove("bounce");
       void mascot.offsetWidth;
       mascot.classList.add("bounce");
-      confetti();
+      confetti(20);
     });
 
-    function confetti(){
-      const colors = ["#1683F3","#FFA400","#FFBE42","#79C3FF"];
-      for(let i=0;i<18;i++){
+    socket.on("winner", () => {
+      winnerOverlay.classList.add("show");
+      confetti(140);
+      setTimeout(() => winnerOverlay.classList.remove("show"), 7000);
+    });
+
+    function confetti(count){
+      const colors = ["#1683F3","#FFA400","#FFBE42","#79C3FF","#FFFFFF"];
+      for(let i=0;i<count;i++){
         const d = document.createElement("div");
         d.className = "confetti-dot";
-        d.style.left = (50 + Math.random()*18 - 9) + "vw";
-        d.style.top = (47 + Math.random()*8 - 4) + "vh";
+        d.style.left = (Math.random()*100) + "vw";
+        d.style.top = "-20px";
         d.style.background = colors[Math.floor(Math.random()*colors.length)];
-        d.style.setProperty("--x", (Math.random()*460-230)+"px");
-        d.style.setProperty("--y", (Math.random()*380-80)+"px");
+        d.style.setProperty("--x", (Math.random()*520-260)+"px");
+        d.style.setProperty("--y", (window.innerHeight + Math.random()*400)+"px");
         document.body.appendChild(d);
-        setTimeout(()=>d.remove(),1350);
+        setTimeout(()=>d.remove(),1800);
       }
     }
   </script>

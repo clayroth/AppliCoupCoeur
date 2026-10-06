@@ -26,28 +26,178 @@
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px">
         <button id="minusBtn" class="secondary">− 1 vote</button>
-        <button id="resetBtn" class="danger">Remettre les votes à zéro</button>
+        <button id="resetBtn" class="danger">Remettre à zéro</button>
+        <button id="winnerBtn" class="success">🏆 Lancer WINNER</button>
       </div>
 
-      <p class="helper">Astuce : ouvre <strong>/screen.html</strong> sur le grand écran et laisse le public voter via <strong>/phone.html</strong>.</p>
+      <hr style="border:0;border-top:1px solid #dfeaf4;margin:30px 0"/>
+
+      <div class="section-title">Textes en direct</div>
+      <p class="helper">Tout est mis à jour instantanément sur les appareils connectés.</p>
+
+      <div style="display:grid;gap:14px;margin-top:18px">
+        <label>
+          <div class="small" style="margin-bottom:6px">Titre principal</div>
+          <input id="titleInput" type="text" maxlength="60"/>
+        </label>
+
+        <label>
+          <div class="small" style="margin-bottom:6px">Texte téléphone</div>
+          <textarea id="phoneSubtitleInput" maxlength="220" rows="3"></textarea>
+        </label>
+
+        <label>
+          <div class="small" style="margin-bottom:6px">Texte grand écran</div>
+          <textarea id="screenSubtitleInput" maxlength="220" rows="3"></textarea>
+        </label>
+
+        <label>
+          <div class="small" style="margin-bottom:6px">Bouton de vote</div>
+          <input id="voteButtonInput" type="text" maxlength="70"/>
+        </label>
+
+        <label>
+          <div class="small" style="margin-bottom:6px">Message spécial</div>
+          <input id="specialMessageInput" type="text" maxlength="180" placeholder="Ex. Bravo à toute l’équipe !"/>
+        </label>
+
+        <button id="textBtn" class="vote-btn" style="min-width:0;width:100%">Mettre à jour les textes</button>
+      </div>
+
+      <hr style="border:0;border-top:1px solid #dfeaf4;margin:30px 0"/>
+
+      <div class="section-title">Apparence en direct</div>
+
+      <div class="admin-grid" style="margin-top:18px">
+        <label>
+          <div class="small" style="margin-bottom:6px">Couleur du titre</div>
+          <input id="titleColorInput" type="color" value="#1683F3"/>
+        </label>
+
+        <label>
+          <div class="small" style="margin-bottom:6px">Taille du titre</div>
+          <input id="titleSizeInput" type="number" min="36" max="180" value="96"/>
+        </label>
+
+        <label>
+          <div class="small" style="margin-bottom:6px">Couleur du sous-titre</div>
+          <input id="subtitleColorInput" type="color" value="#6E8092"/>
+        </label>
+
+        <label>
+          <div class="small" style="margin-bottom:6px">Taille du sous-titre</div>
+          <input id="subtitleSizeInput" type="number" min="12" max="60" value="20"/>
+        </label>
+      </div>
+
+      <div class="admin-grid" style="margin-top:18px">
+        <label class="checkline"><input id="qrVisibleInput" type="checkbox" checked/> Afficher le QR code</label>
+        <label class="checkline"><input id="mascotVisibleInput" type="checkbox" checked/> Afficher la mascotte</label>
+        <label class="checkline"><input id="progressVisibleInput" type="checkbox" checked/> Afficher la jauge</label>
+      </div>
+
+      <button id="uiBtn" class="vote-btn" style="min-width:0;width:100%;margin-top:18px">Appliquer l’apparence</button>
+
+      <div id="savedMessage" class="helper" style="text-align:center;min-height:22px;margin-top:14px"></div>
+
+      <p class="helper" style="margin-top:26px">
+        Grand écran : <strong>/screen.html</strong> · Vote : <strong>/phone.html</strong> · Admin : <strong>/admin.html</strong>
+      </p>
     </section>
   </main>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+
     const votesEl = document.getElementById("votes");
     const goalInput = document.getElementById("goalInput");
+    const titleInput = document.getElementById("titleInput");
+    const phoneSubtitleInput = document.getElementById("phoneSubtitleInput");
+    const screenSubtitleInput = document.getElementById("screenSubtitleInput");
+    const voteButtonInput = document.getElementById("voteButtonInput");
+    const specialMessageInput = document.getElementById("specialMessageInput");
+    const titleColorInput = document.getElementById("titleColorInput");
+    const titleSizeInput = document.getElementById("titleSizeInput");
+    const subtitleColorInput = document.getElementById("subtitleColorInput");
+    const subtitleSizeInput = document.getElementById("subtitleSizeInput");
+    const qrVisibleInput = document.getElementById("qrVisibleInput");
+    const mascotVisibleInput = document.getElementById("mascotVisibleInput");
+    const progressVisibleInput = document.getElementById("progressVisibleInput");
+    const savedMessage = document.getElementById("savedMessage");
 
-    socket.on("state", ({votes, goal}) => {
+    let initialized = false;
+
+    socket.on("state", ({votes, goal, liveText, ui}) => {
       votesEl.textContent = votes;
       if (document.activeElement !== goalInput) goalInput.value = goal;
+
+      if (!initialized) {
+        if (liveText) {
+          titleInput.value = liveText.title || "";
+          phoneSubtitleInput.value = liveText.phoneSubtitle || "";
+          screenSubtitleInput.value = liveText.screenSubtitle || "";
+          voteButtonInput.value = liveText.voteButton || "";
+          specialMessageInput.value = liveText.specialMessage || "";
+        }
+
+        if (ui) {
+          titleColorInput.value = ui.titleColor;
+          titleSizeInput.value = ui.titleSize;
+          subtitleColorInput.value = ui.subtitleColor;
+          subtitleSizeInput.value = ui.subtitleSize;
+          qrVisibleInput.checked = ui.qrVisible;
+          mascotVisibleInput.checked = ui.mascotVisible;
+          progressVisibleInput.checked = ui.progressVisible;
+        }
+
+        initialized = true;
+      }
     });
 
-    document.getElementById("goalBtn").onclick = () => socket.emit("setGoal", goalInput.value);
+    function notify(msg){
+      savedMessage.textContent = "✓ " + msg;
+      setTimeout(() => savedMessage.textContent = "", 2200);
+    }
+
+    document.getElementById("goalBtn").onclick = () => {
+      socket.emit("setGoal", goalInput.value);
+      notify("Objectif mis à jour");
+    };
+
     document.getElementById("minusBtn").onclick = () => socket.emit("minusVote");
+
     document.getElementById("resetBtn").onclick = () => {
       if (confirm("Remettre tous les votes à zéro ?")) socket.emit("resetVotes");
+    };
+
+    document.getElementById("winnerBtn").onclick = () => {
+      socket.emit("launchWinner");
+      notify("Animation WINNER lancée");
+    };
+
+    document.getElementById("textBtn").onclick = () => {
+      socket.emit("setLiveText", {
+        title: titleInput.value,
+        phoneSubtitle: phoneSubtitleInput.value,
+        screenSubtitle: screenSubtitleInput.value,
+        voteButton: voteButtonInput.value,
+        specialMessage: specialMessageInput.value
+      });
+      notify("Textes mis à jour en direct");
+    };
+
+    document.getElementById("uiBtn").onclick = () => {
+      socket.emit("setUi", {
+        titleColor: titleColorInput.value,
+        titleSize: titleSizeInput.value,
+        subtitleColor: subtitleColorInput.value,
+        subtitleSize: subtitleSizeInput.value,
+        qrVisible: qrVisibleInput.checked,
+        mascotVisible: mascotVisibleInput.checked,
+        progressVisible: progressVisibleInput.checked
+      });
+      notify("Apparence mise à jour en direct");
     };
   </script>
 </body>
