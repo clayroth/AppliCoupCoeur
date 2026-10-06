@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Award Bedeez — Admin</title>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+  <main class="app">
+    <section class="card admin">
+      <div class="brand">
+        <div class="brand-mark">⚙</div>
+        <div class="brand-text"><strong>Administration</strong><span>Award Bedeez</span></div>
+      </div>
+
+      <div style="margin-top:24px">
+        <div class="small">Votes actuels</div>
+        <div id="votes" class="big-number">0</div>
+      </div>
+
+      <div class="admin-row">
+        <input id="goalInput" type="number" min="1" value="100" placeholder="Objectif de votes"/>
+        <button id="goalBtn" class="secondary">Changer l’objectif</button>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px">
+        <button id="minusBtn" class="secondary">− 1 vote</button>
+        <button id="resetBtn" class="danger">Remettre les votes à zéro</button>
+      </div>
+
+      <p class="helper">Astuce : ouvre <strong>/screen.html</strong> sur le grand écran et laisse le public voter via <strong>/phone.html</strong>.</p>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const votesEl = document.getElementById("votes");
+    const goalInput = document.getElementById("goalInput");
+
+    socket.on("state", ({votes, goal}) => {
+      votesEl.textContent = votes;
+      if (document.activeElement !== goalInput) goalInput.value = goal;
+    });
+
+    document.getElementById("goalBtn").onclick = () => socket.emit("setGoal", goalInput.value);
+    document.getElementById("minusBtn").onclick = () => socket.emit("minusVote");
+    document.getElementById("resetBtn").onclick = () => {
+      if (confirm("Remettre tous les votes à zéro ?")) socket.emit("resetVotes");
+    };
+  </script>
+</body>
+</html>
